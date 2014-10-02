@@ -1,22 +1,19 @@
 {
-  "glossary": {
-    "title": "example glossary",
-    "GlossDiv": {
-      "title": "S",
-      "GlossList": {
-        "GlossEntry": {
-          "ID": "SGML",
-          "SortAs": "SGML",
-          "GlossTerm": "Standard Generalized Markup Language",
-          "Acronym": "SGML",
-          "Abbrev": "ISO 8879:1986",
-          "GlossDef": {
-            "para": "A meta-markup language, used to create markup languages such as DocBook.",
-            "GlossSeeAlso": ["GML", "XML"]
-          },
-          "GlossSee": "markup"
-        }
-      }
-    }
-  }
+  "val_1": "<%= t('app.name') %>",
+  "val_2": "<%= t('app.area') %>",
+  "val_3": "<%= t('ns.common:add') %>",
+
+  "val_4": "<%= t('app.insert', {youAre: 'great'}) %>",
+  "val_5": "<%= t('app.insert', {youAre: 'great'}) %>",
+
+  "val_6": "<%= t('ns.common:sprintf', { postProcess: 'sprintf', sprintf: ['a', 'b', 'c', 'd'] }) %>",
+  "val_7": "<%= t('ns.common:sprintf', { postProcess: 'sprintf', sprintf: ['a', 'b', 'c', 'd'] })) %>",
+
+  "val_8": "<%= t('app.child', {count: n}) %>",
+  "val_9": "<%= t('app.child', {count: 1}) %>",
+  "val_10": "<%= t('app.child', {count: 3}) %>",
+
+  "val_11": "<%= t('app.friend', {context: [context]}) %>",
+  "val_12": "<%= t('app.friend_context', {context: 'male'}) %>",
+  "val_13": "<%= t('app.friend_context', {context: 'female'}) %>"
 }

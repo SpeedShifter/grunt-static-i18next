@@ -10,6 +10,9 @@
 'use strict';
 
 import _ = require('lodash');
+import fs = require('fs');
+import path = require('path');
+import i18next = require('i18next');
 
 module.exports = function (grunt) {
 
@@ -23,6 +26,8 @@ module.exports = function (grunt) {
       punctuation: '.',
       separator: ', '
     });
+
+//    grunt.log.warn('i18next.translate', i18next.translate ? true : false);
 
     // Iterate over all specified file groups.
     this.files.forEach(function (file) {

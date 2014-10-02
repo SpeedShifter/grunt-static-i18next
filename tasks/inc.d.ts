@@ -2,3 +2,7 @@
 /// <reference path="../bower_components/DefinitelyTyped/nodeunit/nodeunit.d.ts" />
 /// <reference path="../bower_components/DefinitelyTyped/lodash/lodash.d.ts" />
 /// <reference path="../bower_components/DefinitelyTyped/i18next/i18next.d.ts" />
+
+declare module "i18next" {
+  export = i18next;
+}

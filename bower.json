@@ -1,0 +1,9 @@
+{
+	"name": "grunt-static-i18next",
+	"version": "0.0.0",
+	"dependencies": {
+	},
+	"devDependencies": {
+		"DefinitelyTyped": "*"
+	}
+}

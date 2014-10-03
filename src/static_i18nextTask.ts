@@ -20,7 +20,8 @@ export module TranslateTask {
     localeDir?: string;
     lang?: any; // meaning string or string[]
     langInFilename?: string;
-    defaultNamespace?: string;
+    i18next?: I18nextOptions;
+    lodashTemplate?: _.TemplateSettings;
   }
 
   export class Task {
@@ -102,10 +103,23 @@ export module TranslateTask {
     }
 
     private initI18next() {
-      i18next.init(<I18nextOptions>{
+      var i18next_defaults:I18nextOptions = {};
+      var namespaces = [];
+      this.taskLangs.forEach((lang: string) => {
+        namespaces = namespaces.concat(_.keys(this.localesSet[lang]));
+      });
+      namespaces = _.uniq(namespaces);
+      i18next_defaults.ns = {
+        namespaces: namespaces,
+        defaultNs: namespaces[0]
+      };
+
+      var init = <I18nextOptions>_.extend(_.defaults(this.options.i18next || {}, i18next_defaults), <I18nextOptions>{
         resStore: this.localesSet
       });
-      i18next.setDefaultNamespace(this.options.defaultNamespace);
+      _.defaults(init.ns, i18next_defaults.ns);
+
+      i18next.init(init);
     }
 
     private saveFile(file, content, lang) {
@@ -126,6 +140,7 @@ export module TranslateTask {
     }
 
     private translateFiles() {
+      var lodashTemplate = this.options.lodashTemplate || {};
       this.taskLangs.forEach((lang: string) => {
         i18next.setLng(lang, (translate: (key: string, options?: any) => string) => {
           this.task.files.forEach((file: grunt.file.IFilesConfig) => {
@@ -141,11 +156,11 @@ export module TranslateTask {
 
               var data = this.grunt.file.read(filepath);
               try {
-                data = _.template(data, {}, {
+                data = _.template(data, {}, _.extend(lodashTemplate, {
                   imports: {
                     t: translate
                   }
-                })
+                }))
               } catch (e) {
                 this.grunt.log.warn('Error while translate: ' + e.message);
               }

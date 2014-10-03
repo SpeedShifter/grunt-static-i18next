@@ -80,10 +80,24 @@ var i18next = require('i18next-client');
         };
 
         Task.prototype.initI18next = function () {
-            i18next.init({
+            var _this = this;
+            var i18next_defaults = {};
+            var namespaces = [];
+            this.taskLangs.forEach(function (lang) {
+                namespaces = namespaces.concat(_.keys(_this.localesSet[lang]));
+            });
+            namespaces = _.uniq(namespaces);
+            i18next_defaults.ns = {
+                namespaces: namespaces,
+                defaultNs: namespaces[0]
+            };
+
+            var init = _.extend(_.defaults(this.options.i18next || {}, i18next_defaults), {
                 resStore: this.localesSet
             });
-            i18next.setDefaultNamespace(this.options.defaultNamespace);
+            _.defaults(init.ns, i18next_defaults.ns);
+
+            i18next.init(init);
         };
 
         Task.prototype.saveFile = function (file, content, lang) {
@@ -103,6 +117,7 @@ var i18next = require('i18next-client');
 
         Task.prototype.translateFiles = function () {
             var _this = this;
+            var lodashTemplate = this.options.lodashTemplate || {};
             this.taskLangs.forEach(function (lang) {
                 i18next.setLng(lang, function (translate) {
                     _this.task.files.forEach(function (file) {
@@ -116,11 +131,11 @@ var i18next = require('i18next-client');
                         }).map(function (filepath) {
                             var data = _this.grunt.file.read(filepath);
                             try  {
-                                data = _.template(data, {}, {
+                                data = _.template(data, {}, _.extend(lodashTemplate, {
                                     imports: {
                                         t: translate
                                     }
-                                });
+                                }));
                             } catch (e) {
                                 _this.grunt.log.warn('Error while translate: ' + e.message);
                             }

@@ -50,14 +50,21 @@ module.exports = function (grunt) {
       options: {
         localeDir: '<%= yeoman.test_app %>/locale',
 //        lang: ['en'],
-//        langInFilename: '_'
+//        langInFilename: '_',
+//        i18next: {
+//          ns: {
+//            namespaces: ['ns.special'],
+//            defaultNs: 'ns.common'
+//          }
+//        },
+//        lodashTemplate: {}
       },
       translateFixtureApp: {
         files: [{
           expand: true,
           cwd: '<%= yeoman.test_app %>/static',
           src: '**/*.*',
-          dest: '.tmp/i18n'
+          dest: '.tmp/i18next'
         }]
       }
     },

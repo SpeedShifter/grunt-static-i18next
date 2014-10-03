@@ -1,5 +1,5 @@
 {
-  "val_1": "<%= t('app.company.name') %>",
+  "val_1": "<%= t('app.name') %>",
   "val_2": "<%= t('app.area') %>",
   "val_3": "<%= t('ns.common:add') %>",
 
@@ -7,13 +7,13 @@
   "val_5": "<%= t('app.insert', {youAre: 'great'}) %>",
 
   "val_6": "<%= t('ns.common:sprintf', { postProcess: 'sprintf', sprintf: ['a', 'b', 'c', 'd'] }) %>",
-  "val_7": "<%= t('ns.common:sprintf', { postProcess: 'sprintf', sprintf: ['a', 'b', 'c', 'd'] }) %>",
 
-  "val_9": "<%= t('app.child', {count: 1}) %>",
-  "val_10": "<%= t('app.child', {count: 3}) %>",
+  "val_7": "<%= t('app.child', {count: 1}) %>",
+  "val_8": "<%= t('app.child', {count: 3}) %>",
 
-  "val_12": "<%= t('app.friend_context', {context: 'male'}) %>",
-  "val_13": "<%= t('app.friend_context', {context: 'female'}) %>",
+  "val_9": "<%= t('app.friend_context', {context: 'male'}) %>",
+  "val_10": "<%= t('app.friend_context', {context: 'female'}) %>",
 
-  "val_14": "<%= t('app.district') %>"
+  "val_11": "<%= t('app.district') %>",
+  "val_12": "<%= t('app.room', {defaultValue: 'Room 21'}) %>"
 }

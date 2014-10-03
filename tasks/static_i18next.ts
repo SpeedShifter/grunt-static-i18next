@@ -13,6 +13,7 @@ import _ = require('lodash');
 import fs = require('fs');
 import path = require('path');
 import i18next = require('i18next');
+import Q = require('q');
 
 module.exports = function (grunt) {
 
@@ -20,39 +21,28 @@ module.exports = function (grunt) {
   // creation: http://gruntjs.com/creating-tasks
 
   grunt.registerMultiTask('static_i18next', 'Grunt plugin for localizing static assets', function () {
+    var self: grunt.task.IMultiTask<{src: string;}> = this,
+      promises: Q.IPromise<any>[] = [],
+      done = self.async(),
+      options = this.options({
+      });
 
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
-
+    if (!options.localeDir) {
+      grunt.fail.warn("Specify localeDir option.");
+      return done();
+    }
+    grunt.log.warn('i18next.translate', options);
 //    grunt.log.warn('i18next.translate', i18next.translate ? true : false);
 
-    // Iterate over all specified file groups.
-    this.files.forEach(function (file) {
-      // Concat specified files.
-      var src = file.src.filter(function (filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
-          return true;
-        }
-      }).map(function (filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
+    var a = 1;
+    self.files.forEach(function (gruntFile: grunt.file.IFileMap) {
 
-      // Handle options.
-      src += options.punctuation;
+    });
 
-      // Write the destination file.
-      grunt.file.write(file.dest, src);
-
-      // Print a success message.
-      grunt.log.writeln('File "' + file.dest + '" created.');
+    Q.all(promises).then(() => {
+      done();
+    }, () => {
+      done(false);
     });
   });
 

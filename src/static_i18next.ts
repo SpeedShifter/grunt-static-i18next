@@ -105,10 +105,11 @@ module.exports = function (grunt) {
             return data;
           }).join('\n');
 
-          grunt.file.write(file.dest, src);
+          var destfile = path.join(path.dirname(file.dest), lang, path.basename(file.dest));
+          grunt.file.write(destfile, src);
 
           // Print a success message.
-          grunt.log.writeln('File "' + file.dest + '" created.');
+          grunt.log.writeln('File "' + destfile + '" created.');
         });
       });
     });

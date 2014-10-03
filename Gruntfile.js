@@ -49,13 +49,13 @@ module.exports = function (grunt) {
     static_i18next: {
       options: {
         localeDir: '<%= yeoman.test_app %>/locale',
-        lang: ['en']
+//        lang: ['en']
       },
       translateFixtureApp: {
         files: [{
           expand: true,
-          cwd: '<%= yeoman.test_app %>',
-          src: 'static/*.*',
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '*.*',
           dest: '.tmp/i18n'
         }]
       }

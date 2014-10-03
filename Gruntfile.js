@@ -18,6 +18,7 @@ module.exports = function (grunt) {
     yeoman: {
       // configurable paths
       tasks: 'tasks',
+      src: 'src',
       dist: 'dist',
       test_app: 'test/fixtures/app'
     },
@@ -27,8 +28,8 @@ module.exports = function (grunt) {
         files: ['Gruntfile.js']
       },
       typescript: {
-        files: ["<%= yeoman.tasks %>/**/*.ts"],
-        tasks: ["typescript"]
+        files: ["<%= yeoman.src %>/**/*.ts"],
+        tasks: ["typescript", "test"]
       }
     },
 
@@ -47,7 +48,8 @@ module.exports = function (grunt) {
     // Configuration to be run (and then tested).
     static_i18next: {
       options: {
-        localeDir: '<%= yeoman.test_app %>/locale'
+        localeDir: '<%= yeoman.test_app %>/locale',
+        lang: ['en']
       },
       translateFixtureApp: {
         files: [{
@@ -67,11 +69,12 @@ module.exports = function (grunt) {
     // Compile TypeScript source codes
     typescript: {
       dist: {
-        src: ['<%= yeoman.tasks %>/**/*.ts'],
+        src: ['<%= yeoman.src %>/**/*.ts'],
+        dest: '<%= yeoman.tasks %>',
         options: {
           expand: true,
           target: 'es5', //or es3
-          basePath: '<%= yeoman.tasks %>/',
+          basePath: '<%= yeoman.src %>/',
           sourceMap: false,
           declaration: false,
           module: 'commonjs'

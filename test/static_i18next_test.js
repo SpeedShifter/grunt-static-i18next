@@ -1,6 +1,7 @@
 'use strict';
 
 var grunt = require('grunt');
+var path = require('path');
 
 /*
   ======== A Handy Little Nodeunit Reference ========
@@ -22,26 +23,65 @@ var grunt = require('grunt');
     test.ifError(value)
 */
 
+var compareFiles = function(basepath, test) {
+  var expected_path = path.join('test/expected', basepath),
+    actual_path = path.join('.tmp', basepath);
+
+  var expected_files = grunt.file.expand({
+    cwd: expected_path,
+    filter: 'isFile'
+  }, ['**/*.*']);
+  var actual_files = grunt.file.expand({
+    cwd: actual_path,
+    filter: 'isFile'
+  }, ['**/*.*']);
+
+  test.deepEqual(actual_files.sort(), expected_files.sort(), 'files structure should be the same');
+
+  expected_files.forEach(function(file) {
+    var actual_file = path.join(actual_path, file);
+    var expected_file = path.join(expected_path, file);
+    grunt.log.warn(file, grunt.file.exists(actual_file), grunt.file.exists(expected_file));
+    test.equal(grunt.file.exists(actual_file), grunt.file.exists(expected_file), 'both '+file+' files should exist or both not exist');
+    if (grunt.file.exists(actual_file))
+      test.equal(grunt.file.read(actual_file), grunt.file.read(expected_file), 'both '+file+' files should be equal');
+  });
+};
+
 exports.static_i18next = {
   setUp: function (done) {
     // setup here if necessary
     done();
   },
-  default_options: function (test) {
-    test.expect(1);
+  translateApp: function (test) {
+    test.expect(11); // 5 files test for exist and content + same files structure
+    var folder = 'translateApp';
 
-    var actual = grunt.file.read('.tmp/default_options');
-    var expected = grunt.file.read('test/expected/default_options');
-    test.equal(actual, expected, 'should describe what the default behavior is.');
+    compareFiles(folder, test);
 
     test.done();
   },
-  custom_options: function (test) {
-    test.expect(1);
+  translateEnLang: function (test) {
+    test.expect(3); // 1 file test for exist and content + same files structure
+    var folder = 'translateEnLang';
 
-    var actual = grunt.file.read('.tmp/custom_options');
-    var expected = grunt.file.read('test/expected/custom_options');
-    test.equal(actual, expected, 'should describe what the custom option(s) behavior is.');
+    compareFiles(folder, test);
+
+    test.done();
+  },
+  translateLangInFilename: function (test) {
+    test.expect(5); // 2 files test for exist and content + same files structure
+    var folder = 'translateLangInFilename';
+
+    compareFiles(folder, test);
+
+    test.done();
+  },
+  translateDefNamespace: function (test) {
+    test.expect(3); // 1 files test for exist and content + same files structure
+    var folder = 'translateDefNamespace';
+
+    compareFiles(folder, test);
 
     test.done();
   }

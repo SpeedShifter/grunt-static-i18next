@@ -59,12 +59,52 @@ module.exports = function (grunt) {
 //        },
 //        lodashTemplate: {}
       },
-      translateFixtureApp: {
+      translateApp: {
+        options: {},
         files: [{
           expand: true,
           cwd: '<%= yeoman.test_app %>/static',
           src: '**/*.*',
-          dest: '.tmp/i18next'
+          dest: '.tmp/translateApp'
+        }]
+      },
+      translateEnLang: {
+        options: {
+          lang: 'en-US'
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateEnLang'
+        }]
+      },
+      translateLangInFilename: {
+        options: {
+          lang: ['en-US', 'de-DE'],
+          langInFilename: '_'
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateLangInFilename'
+        }]
+      },
+      translateDefNamespace: {
+        options: {
+          lang: ['en-US'],
+          i18next: {
+            ns: {
+              defaultNs: 'ns.common'
+            }
+          }
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateDefNamespace'
         }]
       }
     },
@@ -134,7 +174,7 @@ module.exports = function (grunt) {
 
   // Whenever the "test" task is run, first clean the ".tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'static_i18next'/*, 'nodeunit'*/]);
+  grunt.registerTask('test', ['clean', 'static_i18next', 'nodeunit']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);

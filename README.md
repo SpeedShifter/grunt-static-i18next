@@ -1,92 +1,113 @@
-# grunt-static-i18next
+# Static Internationalization
 
-> Grunt plugin for internationalization of static assets.
+> Grunt plugin to translate static assets, using i18next translator.
+
+Say you have:
+
+```
+app/
+├── Gruntfile.js
+└── app
+    ├── locale
+    │   ├── en
+    │   │  └── ns.common.json
+    │   │  └── ns.special.json
+    │   └── en-US
+    │       └── ns.common.json
+    │       └── ns.special.json
+    └── static
+        └── data.json
+        └── template.html
+```
+
+Static internationalization would like like:
+
+```
+app/
+├── Gruntfile.js
+└── app
+    ├── i18next_static
+    │   ├── en
+    │   │   └── data.json
+    │   │   └── template.html
+    │   ├── en-US
+    │       └── data.json
+    │       └── template.html
+    ├── locale
+    │   ├── en
+    │   │  └── ns.common.json
+    │   │  └── ns.special.json
+    │   └── en-US
+    │       └── ns.common.json
+    │       └── ns.special.json
+    └── static
+        └── data.json
+        └── template.html
+```
+
 
 ## Getting Started
-This plugin requires Grunt.
 
-If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
+This plugin requires [Grunt](http://gruntjs.com/).
 
-```shell
-npm install grunt-static-i18next --save-dev
-```
-
-Once the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:
-
-```js
-grunt.loadNpmTasks('grunt-static-i18next');
-```
+Translation done with i18next translator.
+See [i18next project](http://i18next.com/) (client lib).
+Text replacement is done with [lodash template](http://lodash.com/docs#template).
 
 ## The "static_i18next" task
 
 ### Overview
-In your project's Gruntfile, add a section named `static_i18next` to the data object passed into `grunt.initConfig()`.
+
+Default configuration:
 
 ```js
 grunt.initConfig({
-  static_i18next: {
-    options: {
-      // Task-specific options go here.
-    },
-    your_target: {
-      // Target-specific file lists and/or options go here.
-    },
-  },
+    static_i18next: {
+        options: {
+          localeDir: '<%= yeoman.app %>/locale'
+        },
+        translateApp: {
+          options: {},
+          files: [{
+            expand: true,
+            cwd: '<%= yeoman.app %>/static',
+            src: '**/*.*',
+            dest: '.tmp/i18next'
+          }]
+        }
+    }
 })
 ```
 
 ### Options
 
-#### options.separator
+#### options.localeDir
 Type: `String`
-Default value: `',  '`
+Default value: `locale`
 
-A string value that is used to do something with whatever.
+Locale Directory should contain json files, each json file should be in `lang` folder (for example `en`, `en-US`).
+`lang` folder could contain subfolder with json files in it, subfolder name will be assumed as name of locale namespace,
+ see [i18next docs](http://i18next.com/pages/doc_features.html).
 
-#### options.punctuation
+#### options.lang
+Type: `String` or `String[]`
+
+Language to translate assets. By default, files will be translated to languages, defined in locale dir. 
+
+#### options.langInFilename
 Type: `String`
-Default value: `'.'`
+Default value: `false`
 
-A string value that is used to do something else with whatever else.
+If you want not to place translated files in lang folders, but to place lang string in filename, specify langInFilename 
+as string.  
 
-### Usage Examples
+## Tests
 
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
-
-```js
-grunt.initConfig({
-  static_i18next: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-})
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
-
-```js
-grunt.initConfig({
-  static_i18next: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
-    },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-})
-```
-
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+Run `grunt test`
 
 ## Release History
-_(Nothing yet)_
+
+* 0.0.1 - initial release
 
 ## License
 Copyright (c) 2014 Stas Yermakov. Licensed under the MIT license.

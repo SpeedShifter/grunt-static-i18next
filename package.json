@@ -2,11 +2,11 @@
   "name": "grunt-static-i18next",
   "version": "0.0.1",
   "description": "Grunt plugin for localizing static assets",
-  "repository": "",
+  "repository": "https://github.com/SpeedShifter/grunt-static-i18next",
   "author": {
     "name": "Stas Yermakov",
     "email": "speeedermak@gmail.com",
-    "url": ""
+    "url": "https://github.com/SpeedShifter/grunt-static-i18next"
   },
   "keywords": [
     "gruntplugin"

@@ -107,6 +107,7 @@ Run `grunt test`
 
 ## Release History
 
+* 0.0.2 - basic task
 * 0.0.1 - initial release
 
 ## License

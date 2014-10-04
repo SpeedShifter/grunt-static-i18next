@@ -20,7 +20,7 @@ module.exports = function (grunt: IGrunt) {
       promises: Q.IPromise<any>[] = [],
       done = self.async(),
       options = this.options({
-        defaultNamespace: 'ns.common'
+        localeDir: 'locale'
       });
 
     promises.push((new static_i18nextTask.TranslateTask.Task(grunt, self)).start(options));

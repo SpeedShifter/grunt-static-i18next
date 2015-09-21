@@ -37,14 +37,7 @@ export module TranslateTask {
 
     start(options): Q.IPromise<any> {
       this.options = options;
-      return Q.promise((resolve: (val: any) => void, reject: (val: any) => void, notify: (val: any) => void) => {
-        try{
-          this.exec();
-          resolve(true);
-        }catch(e){
-          reject(e);
-        }
-      });
+      return Q.fcall(this.exec.bind(this));
     }
 
     exec() {
@@ -142,7 +135,7 @@ export module TranslateTask {
     private translateFiles() {
       var lodashTemplate = this.options.lodashTemplate || {};
       this.taskLangs.forEach((lang: string) => {
-        i18next.setLng(lang, (translate: (key: string, options?: any) => string) => {
+        i18next.setLng(lang, (error: any, translate: (key: string, options?: any) => string) => {
           this.task.files.forEach((file: grunt.file.IFilesConfig) => {
             var src = file.src.filter((filepath) => {
               // Warn on and remove invalid source files (if nonull was set).
@@ -154,13 +147,16 @@ export module TranslateTask {
               }
             }).map((filepath) => {
 
-              var data = this.grunt.file.read(filepath);
+              var data = this.grunt.file.read(filepath),
+                templateOptions = _.defaults<_.TemplateSettings, _.TemplateSettings>(lodashTemplate, {imports: {}});
+
+              _.extend(templateOptions.imports, {
+                t: translate
+              });
+
               try {
-                data = _.template(data, {}, _.extend(lodashTemplate, {
-                  imports: {
-                    t: translate
-                  }
-                }))
+                var executor = _.template(data, templateOptions);
+                data = executor({});
               } catch (e) {
                 this.grunt.log.warn('Error while translate: ' + e.message);
               }

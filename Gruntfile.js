@@ -122,7 +122,7 @@ module.exports = function (grunt) {
         options: {
           expand: true,
           target: 'es5', //or es3
-          basePath: '<%= yeoman.src %>/',
+          rootDir: '<%= yeoman.src %>/',
           sourceMap: false,
           declaration: false,
           module: 'commonjs'

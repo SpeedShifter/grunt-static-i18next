@@ -95,11 +95,38 @@ Type: `String` or `String[]`
 Language to translate assets. By default, files will be translated to languages, defined in locale dir. 
 
 #### options.langInFilename
-Type: `String`
+Type: `String` or `boolean`
 Default value: `false`
 
-If you want not to place translated files in lang folders, but to place lang string in filename, specify langInFilename 
-as string.  
+If you don't want to place translated files in lang folders, but expect it to be placed in filename, set `langInFilename` 
+to `true` or specify as delimiter string (default is `.`).  
+
+#### options.singleLang
+Type: `boolean`
+Default value: `false`
+
+If one Language used, and you dont want to add it's name into path or name of translated files.
+
+#### options.splitNamespace
+Type: `boolean`
+Default value: `false`
+
+Set to true, if translated files should be generated per each Namespace.
+Additionally set `options.i18next.ns.defaultNs` to set fallback namespace
+`options.i18next: {
+   ns: {
+     defaultNs: 'ns.common'
+   }
+  }
+`
+
+#### options.nsInFilename
+Type: `String` or `boolean`
+Default value: `false`
+*Ignored if options.splitNamespace is not set as true
+
+If you don't want to place translated files in Namespace folders, but expect it to be placed in filename, set `nsInFilename` 
+to `true` or specify as delimiter string (default is `.`).  
 
 ## Tests
 

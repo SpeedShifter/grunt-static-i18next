@@ -19,23 +19,32 @@ var TranslateTask;
             this.task = task;
         }
         Task.prototype.start = function (options) {
-            this.options = options;
+            this.options = _.extend({}, options);
             return Q.fcall(this.exec.bind(this));
         };
         Task.prototype.exec = function () {
-            this.loadLocales();
-            this.getTaskLangs();
-            this.initI18next();
-            this.translateFiles();
+            try {
+                this.loadLocales();
+                this.getTaskLangs();
+                this.initI18next();
+            }
+            catch (e) {
+                this.grunt.log.warn('Error while init: ' + e.message);
+            }
+            try {
+                this.translateFiles();
+            }
+            catch (e) {
+                this.grunt.log.warn('Error while translate Files: ' + e.message);
+            }
         };
         Task.prototype.getTaskLangs = function () {
-            var langs = this.options.lang; // array of languages should be translate
-            if (langs) {
-                if (!_.isArray(langs))
-                    langs = [langs];
-            }
-            else {
-                langs = _.keys(this.localesSet);
+            var langs = _.keys(this.localesSet); // array of languages should be translate
+            if (this.options.lang) {
+                if (_.isArray(this.options.lang))
+                    langs = this.options.lang;
+                else
+                    langs = [this.options.lang];
             }
             return this.taskLangs = langs;
         };
@@ -74,68 +83,107 @@ var TranslateTask;
         };
         Task.prototype.initI18next = function () {
             var _this = this;
-            var i18next_defaults = {};
             var namespaces = [];
             this.taskLangs.forEach(function (lang) {
                 namespaces = namespaces.concat(_.keys(_this.localesSet[lang]));
             });
             namespaces = _.uniq(namespaces);
-            i18next_defaults.ns = {
+            this.namespaces = namespaces;
+            var task_i18next_options = _.cloneDeep(this.options.i18next);
+            if (this.options.splitNamespace) {
+                var defNS = task_i18next_options
+                    && task_i18next_options.ns
+                    && task_i18next_options.ns.defaultNs;
+                if (!task_i18next_options.fallbackNS && defNS)
+                    task_i18next_options.fallbackNS = [defNS];
+                task_i18next_options.fallbackToDefaultNS = true;
+            }
+            var init = _.defaults(_.extend(task_i18next_options || {}, {
+                resStore: this.localesSet
+            }), { ns: {} });
+            _.defaults(init.ns, {
                 namespaces: namespaces,
                 defaultNs: namespaces[0]
-            };
-            var init = _.extend(_.defaults(this.options.i18next || {}, i18next_defaults), {
-                resStore: this.localesSet
             });
-            _.defaults(init.ns, i18next_defaults.ns);
+            //this.grunt.log.writeln(JSON.stringify(_.omit(init, 'resStore'), null, '  '));
             i18next.init(init);
         };
-        Task.prototype.saveFile = function (file, content, lang) {
-            lang = lang || '';
-            var dest = file.dest;
-            if (this.options.langInFilename) {
-                var langname = (this.options.langInFilename || '.') + lang, extname = path.extname(file.dest), filename = path.basename(file.dest, extname) + langname + extname;
-                dest = path.join(path.dirname(file.dest), filename);
+        Task.prototype.saveFile = function (file, content, lang, ns) {
+            if (lang === void 0) { lang = ''; }
+            var dest = file.dest, extname = path.extname(file.dest), filename = [path.basename(file.dest, extname), extname], filepath = path.dirname(file.dest);
+            if (!(this.options.singleLang && this.taskLangs.length == 1)) {
+                if (this.options.langInFilename) {
+                    var langname = (_.isString(this.options.langInFilename) ? this.options.langInFilename : '.') + lang;
+                    filename.splice(-1, 0, langname);
+                }
+                else {
+                    filepath = path.join(filepath, lang);
+                }
             }
-            else {
-                var langDir = path.join(file.orig.dest, lang);
-                dest = path.normalize(file.dest.replace(file.orig.dest, langDir));
+            if (ns) {
+                if (this.options.nsInFilename) {
+                    var nsname = (_.isString(this.options.nsInFilename) ? this.options.nsInFilename : '.') + ns;
+                    filename.splice(-1, 0, nsname);
+                }
+                else
+                    filepath = path.join(filepath, ns);
             }
+            dest = path.join(filepath, filename.join(''));
             this.grunt.file.write(dest, content);
             this.grunt.log.writeln('File "' + dest + '" created.');
         };
-        Task.prototype.translateFiles = function () {
+        Task.prototype.translateFileLang = function (file, lang, ns) {
             var _this = this;
             var lodashTemplate = this.options.lodashTemplate || {};
-            this.taskLangs.forEach(function (lang) {
-                i18next.setLng(lang, function (error, translate) {
-                    _this.task.files.forEach(function (file) {
-                        var src = file.src.filter(function (filepath) {
-                            // Warn on and remove invalid source files (if nonull was set).
-                            if (!_this.grunt.file.exists(filepath)) {
-                                _this.grunt.log.warn('Source file "' + filepath + '" not found.');
-                                return false;
-                            }
-                            else {
-                                return true;
-                            }
-                        }).map(function (filepath) {
-                            var data = _this.grunt.file.read(filepath), templateOptions = _.defaults(lodashTemplate, { imports: {} });
-                            _.extend(templateOptions.imports, {
-                                t: translate
-                            });
-                            try {
-                                var executor = _.template(data, templateOptions);
-                                data = executor({});
-                            }
-                            catch (e) {
-                                _this.grunt.log.warn('Error while translate: ' + e.message);
-                            }
-                            return data;
-                        }).join('\n');
-                        _this.saveFile(file, src, lang);
+            if (ns)
+                i18next.setDefaultNamespace(ns);
+            i18next.setLng(lang, function (error, translate) {
+                var src = file.src.filter(function (filepath) {
+                    // Warn on and remove invalid source files (if nonull was set).
+                    if (!_this.grunt.file.exists(filepath)) {
+                        _this.grunt.log.warn('Source file "' + filepath + '" not found.');
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }).map(function (filepath) {
+                    var data = _this.grunt.file.read(filepath), templateOptions = _.defaults(lodashTemplate, { imports: {} });
+                    _.extend(templateOptions.imports, {
+                        t: translate
                     });
-                });
+                    try {
+                        var executor = _.template(data, templateOptions);
+                        data = executor({});
+                    }
+                    catch (e) {
+                        _this.grunt.log.warn('Error while translate: ' + e.message);
+                    }
+                    return data;
+                }).join('\n');
+                try {
+                    _this.saveFile(file, src, lang, ns);
+                }
+                catch (e) {
+                    _this.grunt.log.warn('Error while writing file: ' + e.message);
+                }
+            });
+        };
+        Task.prototype.translateFiles = function () {
+            var _this = this;
+            this.taskLangs.forEach(function (lang) {
+                if (_this.options.splitNamespace) {
+                    _.forEach(_this.namespaces, function (ns) {
+                        _this.task.files.forEach(function (file) {
+                            _this.translateFileLang(file, lang, ns);
+                        });
+                    });
+                }
+                else {
+                    _this.task.files.forEach(function (file) {
+                        _this.translateFileLang(file, lang);
+                    });
+                }
             });
         };
         return Task;

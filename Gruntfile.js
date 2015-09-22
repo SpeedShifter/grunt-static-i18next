@@ -106,6 +106,55 @@ module.exports = function (grunt) {
           src: '**/*.*',
           dest: '.tmp/translateDefNamespace'
         }]
+      },
+      translateSingleLang: {
+        options: {
+          lang: 'dev',
+          singleLang: true
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateSingleLang'
+        }]
+      },
+      translateSplitNS: {
+        options: {
+          lang: 'dev',
+          singleLang: true,
+          splitNamespace: true,
+          i18next: {
+            ns: {
+              defaultNs: 'ns.common'
+            }
+          }
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateSplitNS'
+        }]
+      },
+      translateSplitNSInFileName: {
+        options: {
+          lang: 'dev',
+          singleLang: true,
+          splitNamespace: true,
+          nsInFilename: true,
+          i18next: {
+            ns: {
+              defaultNs: 'ns.common'
+            }
+          }
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>/static',
+          src: '**/*.*',
+          dest: '.tmp/translateSplitNSInFileName'
+        }]
       }
     },
 

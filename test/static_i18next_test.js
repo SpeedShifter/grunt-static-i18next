@@ -84,5 +84,29 @@ exports.static_i18next = {
     compareFiles(folder, test);
 
     test.done();
+  },
+  translateSingleLang: function (test) {
+    test.expect(3); // 1 files test for exist and content + same files structure
+    var folder = 'translateSingleLang';
+
+    compareFiles(folder, test);
+
+    test.done();
+  },
+  translateSplitNS: function (test) {
+    test.expect(9); // 4 files test for exist and content + same files structure
+    var folder = 'translateSplitNS';
+
+    compareFiles(folder, test);
+
+    test.done();
+  },
+  translateSplitNSInFileName: function (test) {
+    test.expect(9); // 4 files test for exist and content + same files structure
+    var folder = 'translateSplitNSInFileName';
+
+    compareFiles(folder, test);
+
+    test.done();
   }
 };

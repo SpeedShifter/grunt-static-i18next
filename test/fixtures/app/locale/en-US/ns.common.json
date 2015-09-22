@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "en-US:: i18n",
+    "insert": "en-US:: you are __youAre__",
+    "child": "en-US:: __count__ child",
+    "child_plural": "en-US:: __count__ children",
+    "friend_context": "en-US:: A friend",
+    "friend_context_male": "en-US:: A boyfriend",
+    "friend_context_female": "en-US:: A girlfriend"
+  }
+}

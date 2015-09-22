@@ -1,8 +1,0 @@
-{
-  "app": {
-    "child": "__count__ Kind",
-    "child_plural": "__count__ Kinder",
-    "area": "Area 51",
-    "district": "District 9 ist spassiger als $t(app.area)"
-  }
-}

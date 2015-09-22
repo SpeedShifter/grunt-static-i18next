@@ -1,19 +1,19 @@
 {
-  "val_1": "app.name",
-  "val_2": "Area 51",
-  "val_3": "add",
+  "val_1": "common name",
+  "val_2": "de:: Area 51",
+  "val_3": "common add",
 
   "val_4": "app.insert",
   "val_5": "app.insert",
 
-  "val_6": "Hello a, b, c and d",
+  "val_6": "common Hello a, b, c and d",
 
-  "val_7": "1 Kind",
-  "val_8": "3 Kinder",
+  "val_7": "de:: 1 Kind",
+  "val_8": "de:: 3 Kinder",
 
   "val_9": "app.friend_context",
   "val_10": "app.friend_context",
 
-  "val_11": "District 9 ist spassiger als Area 51",
+  "val_11": "de:: District 9 ist spassiger als de:: Area 51",
   "val_12": "Room 21"
 }

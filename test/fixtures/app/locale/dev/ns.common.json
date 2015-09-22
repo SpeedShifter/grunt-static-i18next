@@ -1,15 +1,17 @@
 {
   "app": {
-    "child": "__count__ child",
-    "child_plural": "__count__ children",
+    "name": "common name",
+    "area": "common area",
+    "child": "common __count__ child",
+    "child_plural": "common __count__ children",
     "company": {
-      "name": "my company"
+      "name": "common my company"
     }
   },
   "attr": {
-    "placeholder": "translated placeholder",
-    "title": "translated title"
+    "placeholder": "common translated placeholder",
+    "title": "common translated title"
   },
-  "add": "add",
-  "sprintf": "Hello %s, %s, %s and %s"
+  "add": "common add",
+  "sprintf": "common Hello %s, %s, %s and %s"
 }

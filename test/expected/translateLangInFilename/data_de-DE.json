@@ -1,19 +1,19 @@
 {
-  "val_1": "i18n",
-  "val_2": "Area 51",
-  "val_3": "add",
+  "val_1": "de-DE:: i18n",
+  "val_2": "de:: Area 51",
+  "val_3": "common add",
 
-  "val_4": "du bist great",
-  "val_5": "du bist great",
+  "val_4": "de-DE:: du bist great",
+  "val_5": "de-DE:: du bist great",
 
-  "val_6": "Hello a, b, c and d",
+  "val_6": "common Hello a, b, c and d",
 
-  "val_7": "1 Kind",
-  "val_8": "3 Kinder",
+  "val_7": "de-DE:: 1 Kind",
+  "val_8": "de-DE:: 3 Kinder",
 
-  "val_9": "Ein Freund",
-  "val_10": "Eine Freundin",
+  "val_9": "de-DE:: Ein Freund",
+  "val_10": "de-DE:: Eine Freundin",
 
-  "val_11": "District 9 ist spassiger als Area 51",
+  "val_11": "de:: District 9 ist spassiger als de:: Area 51",
   "val_12": "Room 21"
 }

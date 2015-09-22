@@ -16,10 +16,14 @@ import Q = require('q');
 import i18next = require('i18next-client');
 
 export module TranslateTask {
+
   export interface ITaskOptions {
     localeDir?: string;
-    lang?: any; // meaning string or string[]
-    langInFilename?: string;
+    lang?: string[] | string; // meaning string or string[]
+    langInFilename?: string | boolean;
+    nsInFilename?: string | boolean;
+    splitNamespace?: boolean;
+    singleLang?: boolean;
     i18next?: I18nextOptions;
     lodashTemplate?: _.TemplateSettings;
   }
@@ -29,31 +33,40 @@ export module TranslateTask {
 
     private localesSet: any;
     private taskLangs: string[];
-
+    private namespaces: string[];
 
     constructor(private grunt: IGrunt, private task: grunt.task.IMultiTask<any>) {
 
     }
 
     start(options): Q.IPromise<any> {
-      this.options = options;
+      this.options = _.extend({}, options);
       return Q.fcall(this.exec.bind(this));
     }
 
     exec() {
-      this.loadLocales();
-      this.getTaskLangs();
-      this.initI18next();
-      this.translateFiles();
+      try {
+        this.loadLocales();
+        this.getTaskLangs();
+        this.initI18next();
+      } catch(e) {
+        this.grunt.log.warn('Error while init: ' + e.message);
+      }
+
+      try {
+        this.translateFiles();
+      } catch(e) {
+        this.grunt.log.warn('Error while translate Files: ' + e.message);
+      }
     }
 
     private getTaskLangs() {
-      var langs = this.options.lang; // array of languages should be translate
-      if (langs) {
-        if (!_.isArray(langs))
-          langs = [langs];
-      } else { // if not specified, we need to translate all
-        langs = _.keys(this.localesSet);
+      var langs = _.keys(this.localesSet); // array of languages should be translate
+      if (this.options.lang) {
+        if (_.isArray(this.options.lang))
+          langs = <string[]>this.options.lang;
+        else
+          langs = [<string>this.options.lang];
       }
       return this.taskLangs = langs;
     }
@@ -96,76 +109,121 @@ export module TranslateTask {
     }
 
     private initI18next() {
-      var i18next_defaults:I18nextOptions = {};
       var namespaces = [];
       this.taskLangs.forEach((lang: string) => {
         namespaces = namespaces.concat(_.keys(this.localesSet[lang]));
       });
       namespaces = _.uniq(namespaces);
-      i18next_defaults.ns = {
+      this.namespaces = namespaces;
+
+      var task_i18next_options = _.cloneDeep<any>(this.options.i18next);
+
+      if (this.options.splitNamespace) {
+        var defNS = task_i18next_options
+          && task_i18next_options.ns
+          && task_i18next_options.ns.defaultNs;
+
+        if (!task_i18next_options.fallbackNS && defNS)
+          task_i18next_options.fallbackNS = [defNS];
+
+        task_i18next_options.fallbackToDefaultNS = true;
+      }
+
+      var init = <I18nextOptions>_.defaults(_.extend(task_i18next_options || {}, <I18nextOptions>{
+          resStore: this.localesSet
+        }), {ns: {}});
+
+      _.defaults(init.ns, {
         namespaces: namespaces,
         defaultNs: namespaces[0]
-      };
-
-      var init = <I18nextOptions>_.extend(_.defaults(this.options.i18next || {}, i18next_defaults), <I18nextOptions>{
-        resStore: this.localesSet
       });
-      _.defaults(init.ns, i18next_defaults.ns);
+
+      //this.grunt.log.writeln(JSON.stringify(_.omit(init, 'resStore'), null, '  '));
 
       i18next.init(init);
     }
 
-    private saveFile(file, content, lang) {
-      lang = lang || '';
-      var dest = file.dest;
-      if (this.options.langInFilename) {
-        var langname = (this.options.langInFilename || '.') + lang,
-          extname = path.extname(file.dest),
-          filename = path.basename(file.dest, extname) + langname  + extname;
-        dest = path.join(path.dirname(file.dest), filename);
-      } else{
-        var langDir = path.join(file.orig.dest, lang);
-        dest = path.normalize(file.dest.replace(file.orig.dest, langDir));
+    private saveFile(file, content, lang: string = '', ns?: string) {
+      var dest = file.dest,
+        extname = path.extname(file.dest),
+        filename = [path.basename(file.dest, extname), extname],
+        filepath = path.dirname(file.dest);
+
+      if (!(this.options.singleLang && this.taskLangs.length == 1)) {
+        if (this.options.langInFilename) {
+          var langname = (_.isString(this.options.langInFilename) ? this.options.langInFilename : '.') + lang;
+          filename.splice(-1,0, langname);
+        } else {
+          filepath = path.join(filepath, lang);
+        }
       }
+
+      if (ns) {
+        if (this.options.nsInFilename) {
+          var nsname = (_.isString(this.options.nsInFilename) ? this.options.nsInFilename : '.') + ns;
+          filename.splice(-1,0, nsname);
+        } else
+          filepath = path.join(filepath, ns);
+      }
+
+      dest = path.join(filepath, filename.join(''));
 
       this.grunt.file.write(dest, content);
       this.grunt.log.writeln('File "' + dest + '" created.');
     }
 
-    private translateFiles() {
+    private translateFileLang(file: grunt.file.IFilesConfig, lang: string, ns?: string) {
       var lodashTemplate = this.options.lodashTemplate || {};
-      this.taskLangs.forEach((lang: string) => {
-        i18next.setLng(lang, (error: any, translate: (key: string, options?: any) => string) => {
-          this.task.files.forEach((file: grunt.file.IFilesConfig) => {
-            var src = file.src.filter((filepath) => {
-              // Warn on and remove invalid source files (if nonull was set).
-              if (!this.grunt.file.exists(filepath)) {
-                this.grunt.log.warn('Source file "' + filepath + '" not found.');
-                return false;
-              } else {
-                return true;
-              }
-            }).map((filepath) => {
+      if (ns)
+        i18next.setDefaultNamespace(ns);
 
-              var data = this.grunt.file.read(filepath),
-                templateOptions = _.defaults<_.TemplateSettings, _.TemplateSettings>(lodashTemplate, {imports: {}});
+      i18next.setLng(lang, (error: any, translate: (key: string, options?: any) => string) => {
+        var src = file.src.filter((filepath) => {
+          // Warn on and remove invalid source files (if nonull was set).
+          if (!this.grunt.file.exists(filepath)) {
+            this.grunt.log.warn('Source file "' + filepath + '" not found.');
+            return false;
+          } else {
+            return true;
+          }
+        }).map((filepath) => {
+          var data = this.grunt.file.read(filepath),
+            templateOptions = _.defaults<_.TemplateSettings, _.TemplateSettings>(lodashTemplate, {imports: {}});
 
-              _.extend(templateOptions.imports, {
-                t: translate
-              });
-
-              try {
-                var executor = _.template(data, templateOptions);
-                data = executor({});
-              } catch (e) {
-                this.grunt.log.warn('Error while translate: ' + e.message);
-              }
-              return data;
-            }).join('\n');
-
-            this.saveFile(file, src, lang);
+          _.extend(templateOptions.imports, {
+            t: translate
           });
-        });
+
+          try {
+            var executor = _.template(data, templateOptions);
+            data = executor({});
+          } catch (e) {
+            this.grunt.log.warn('Error while translate: ' + e.message);
+          }
+          return data;
+        }).join('\n');
+
+        try {
+          this.saveFile(file, src, lang, ns);
+        } catch (e) {
+          this.grunt.log.warn('Error while writing file: ' + e.message);
+        }
+      });
+    }
+
+    private translateFiles() {
+      this.taskLangs.forEach((lang: string) => {
+        if (this.options.splitNamespace) {
+          _.forEach(this.namespaces, (ns: string) => {
+            this.task.files.forEach((file: grunt.file.IFilesConfig) => {
+              this.translateFileLang(file, lang, ns);
+            });
+          });
+        } else {
+          this.task.files.forEach((file: grunt.file.IFilesConfig) => {
+            this.translateFileLang(file, lang);
+          });
+        }
       });
     }
   }

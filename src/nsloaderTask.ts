@@ -52,12 +52,12 @@ export module NSLoaderTask {
               'place.appendChild(s);' +
             '}' +
           '};' +
-        '})(window); nsloader("dev", "ns.common");' +
+        '})(window);' +
       '</script>';
 
     static fileTemplateToRegexp(template: string) {
       if (!template) return template;
-      return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '[\\s\\t]*$';
+      return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*$';
     }
 
     constructor(private grunt: IGrunt, private task: grunt.task.IMultiTask<any>) {

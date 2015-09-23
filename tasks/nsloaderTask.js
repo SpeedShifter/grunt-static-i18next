@@ -20,7 +20,7 @@ var NSLoaderTask;
         Task.fileTemplateToRegexp = function (template) {
             if (!template)
                 return template;
-            return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '[\\s\\t]*$';
+            return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*$';
         };
         Task.prototype.start = function (options) {
             this.options = _.extend({}, options);
@@ -149,7 +149,7 @@ var NSLoaderTask;
             'place.appendChild(s);' +
             '}' +
             '};' +
-            '})(window); nsloader("dev", "ns.common");' +
+            '})(window);' +
             '</script>';
         return Task;
     })();

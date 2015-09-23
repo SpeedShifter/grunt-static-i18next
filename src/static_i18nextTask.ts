@@ -17,13 +17,16 @@ import i18next = require('i18next-client');
 
 export module TranslateTask {
 
-  export interface ITaskOptions {
-    localeDir?: string;
-    lang?: string[] | string; // meaning string or string[]
+  export interface IPathConstructOptions {
     langInFilename?: string | boolean;
     nsInFilename?: string | boolean;
     splitNamespace?: boolean;
     singleLang?: boolean;
+  }
+
+  export interface ITaskOptions extends IPathConstructOptions {
+    localeDir?: string;
+    lang?: string[] | string; // meaning string or string[]
     i18next?: I18nextOptions;
     lodashTemplate?: _.TemplateSettings;
   }
@@ -68,6 +71,8 @@ export module TranslateTask {
         else
           langs = [<string>this.options.lang];
       }
+
+      this.options.singleLang = this.options.singleLang && langs.length == 1;
       return this.taskLangs = langs;
     }
 
@@ -143,15 +148,15 @@ export module TranslateTask {
       i18next.init(init);
     }
 
-    private saveFile(file, content, lang: string = '', ns?: string) {
-      var dest = file.dest,
-        extname = path.extname(file.dest),
-        filename = [path.basename(file.dest, extname), extname],
-        filepath = path.dirname(file.dest);
+    static constructPath(link: string, options: IPathConstructOptions, lang: string = '', ns?: string) {
+      var dest = link,
+        extname = path.extname(link),
+        filename = [path.basename(link, extname), extname],
+        filepath = path.dirname(link);
 
-      if (!(this.options.singleLang && this.taskLangs.length == 1)) {
-        if (this.options.langInFilename) {
-          var langname = (_.isString(this.options.langInFilename) ? this.options.langInFilename : '.') + lang;
+      if (!options.singleLang) {
+        if (options.langInFilename) {
+          var langname = (_.isString(options.langInFilename) ? options.langInFilename : '.') + lang;
           filename.splice(-1,0, langname);
         } else {
           filepath = path.join(filepath, lang);
@@ -159,14 +164,18 @@ export module TranslateTask {
       }
 
       if (ns) {
-        if (this.options.nsInFilename) {
-          var nsname = (_.isString(this.options.nsInFilename) ? this.options.nsInFilename : '.') + ns;
+        if (options.nsInFilename) {
+          var nsname = (_.isString(options.nsInFilename) ? options.nsInFilename : '.') + ns;
           filename.splice(-1,0, nsname);
         } else
           filepath = path.join(filepath, ns);
       }
 
-      dest = path.join(filepath, filename.join(''));
+      return path.join(filepath, filename.join(''));
+    }
+
+    private saveFile(file, content, lang: string = '', ns?: string) {
+      var dest = Task.constructPath(file.dest, this.options, lang, ns);
 
       this.grunt.file.write(dest, content);
       this.grunt.log.writeln('File "' + dest + '" created.');

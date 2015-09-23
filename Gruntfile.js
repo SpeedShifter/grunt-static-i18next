@@ -158,6 +158,19 @@ module.exports = function (grunt) {
       }
     },
 
+    nsloader: {
+      options: {
+      },
+      test: {
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.test_app %>',
+          src: ['index.html'],
+          dest: '.tmp'
+        }]
+      }
+    },
+
     // Unit tests.
     nodeunit: {
       tests: ['test/*_test.js']

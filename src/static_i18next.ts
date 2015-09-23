@@ -12,6 +12,7 @@
 import path = require('path');
 import Q = require('q');
 import static_i18nextTask = require('./static_i18nextTask');
+import nsloaderTask = require('./nsloaderTask');
 
 module.exports = function (grunt: IGrunt) {
 
@@ -32,4 +33,18 @@ module.exports = function (grunt: IGrunt) {
     });
   });
 
+  grunt.registerMultiTask('nsloader', 'Grunt plugin to dynamically load translated files', function () {
+    var self: grunt.task.IMultiTask<{src: string;}> = this,
+      promises: Q.IPromise<any>[] = [],
+      done = self.async(),
+      options = this.options({});
+
+    promises.push((new nsloaderTask.NSLoaderTask.Task(grunt, self)).start(options));
+
+    Q.all(promises).then(() => {
+      done();
+    }, () => {
+      done(false);
+    });
+  });
 };

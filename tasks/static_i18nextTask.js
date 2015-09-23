@@ -46,6 +46,7 @@ var TranslateTask;
                 else
                     langs = [this.options.lang];
             }
+            this.options.singleLang = this.options.singleLang && langs.length == 1;
             return this.taskLangs = langs;
         };
         Task.prototype.loadLocales = function () {
@@ -108,12 +109,12 @@ var TranslateTask;
             //this.grunt.log.writeln(JSON.stringify(_.omit(init, 'resStore'), null, '  '));
             i18next.init(init);
         };
-        Task.prototype.saveFile = function (file, content, lang, ns) {
+        Task.constructPath = function (link, options, lang, ns) {
             if (lang === void 0) { lang = ''; }
-            var dest = file.dest, extname = path.extname(file.dest), filename = [path.basename(file.dest, extname), extname], filepath = path.dirname(file.dest);
-            if (!(this.options.singleLang && this.taskLangs.length == 1)) {
-                if (this.options.langInFilename) {
-                    var langname = (_.isString(this.options.langInFilename) ? this.options.langInFilename : '.') + lang;
+            var dest = link, extname = path.extname(link), filename = [path.basename(link, extname), extname], filepath = path.dirname(link);
+            if (!options.singleLang) {
+                if (options.langInFilename) {
+                    var langname = (_.isString(options.langInFilename) ? options.langInFilename : '.') + lang;
                     filename.splice(-1, 0, langname);
                 }
                 else {
@@ -121,14 +122,18 @@ var TranslateTask;
                 }
             }
             if (ns) {
-                if (this.options.nsInFilename) {
-                    var nsname = (_.isString(this.options.nsInFilename) ? this.options.nsInFilename : '.') + ns;
+                if (options.nsInFilename) {
+                    var nsname = (_.isString(options.nsInFilename) ? options.nsInFilename : '.') + ns;
                     filename.splice(-1, 0, nsname);
                 }
                 else
                     filepath = path.join(filepath, ns);
             }
-            dest = path.join(filepath, filename.join(''));
+            return path.join(filepath, filename.join(''));
+        };
+        Task.prototype.saveFile = function (file, content, lang, ns) {
+            if (lang === void 0) { lang = ''; }
+            var dest = Task.constructPath(file.dest, this.options, lang, ns);
             this.grunt.file.write(dest, content);
             this.grunt.log.writeln('File "' + dest + '" created.');
         };

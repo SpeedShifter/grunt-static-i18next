@@ -165,7 +165,7 @@ module.exports = function (grunt) {
         files: [{
           expand: true,
           cwd: '<%= yeoman.test_app %>',
-          src: ['index.html'],
+          src: ['*.html'],
           dest: '.tmp'
         }]
       }
@@ -236,7 +236,7 @@ module.exports = function (grunt) {
 
   // Whenever the "test" task is run, first clean the ".tmp" dir, then run this
   // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'static_i18next', 'nodeunit']);
+  grunt.registerTask('test', ['clean', 'static_i18next', 'nsloader:test', 'nodeunit']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);

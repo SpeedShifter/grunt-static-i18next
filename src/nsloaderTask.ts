@@ -21,6 +21,11 @@ export module NSLoaderTask {
     nsPlaceholder?: string;
   }
 
+  export interface IFileTemplateRegexp {
+    isNegative: boolean;
+    regexp: RegExp;
+  }
+
   export class Task {
     private options: ITaskOptions;
 
@@ -35,29 +40,47 @@ export module NSLoaderTask {
     static loaderTemplateLangPlaceholder = '<-lang->';
     static loaderTemplate =
       '<script>' +
-        '(function(context) {' +
-          'var css = <%= csslinks%>,' +
-            'js = <%= jslinks%>;' +
-          'context.nsloader = function(lang, ns) {' +
-            'var place = document.head || document.body;' +
-            'for (var i=0, ii=css.length; i<ii; i++) {' +
-              'var s = document.createElement( "link" );' +
-              's.setAttribute("href", css[i].replace("'+Task.loaderTemplateNSplaceholder+'", ns).replace("'+Task.loaderTemplateLangPlaceholder+'", lang));' +
-              's.setAttribute("rel", "stylesheet");' +
-              'place.appendChild(s);' +
-            '}' +
-            'for (var i=0, ii=js.length; i<ii; i++) {' +
-              'var s = document.createElement( "script" );' +
-              's.setAttribute("src", js[i].replace("'+Task.loaderTemplateNSplaceholder+'", ns).replace("'+Task.loaderTemplateLangPlaceholder+'", lang));' +
-              'place.appendChild(s);' +
-            '}' +
-          '};' +
-        '})(window);' +
+      '(function(context) {' +
+      'var css = <%= csslinks%>,' +
+      'js = <%= jslinks%>;' +
+      'context.nsloader = function(lang, ns) {' +
+      'var place = document.head || document.body;' +
+      'for (var i=0, ii=css.length; i<ii; i++) {' +
+      'var s = document.createElement( "link" );' +
+      's.setAttribute("href", css[i].replace("'+Task.loaderTemplateNSplaceholder+'", ns).replace("'+Task.loaderTemplateLangPlaceholder+'", lang));' +
+      's.setAttribute("rel", "stylesheet");' +
+      'place.appendChild(s);' +
+      '}' +
+      'for (var i=0, ii=js.length; i<ii; i++) {' +
+      'var s = document.createElement( "script" );' +
+      's.setAttribute("src", js[i].replace("'+Task.loaderTemplateNSplaceholder+'", ns).replace("'+Task.loaderTemplateLangPlaceholder+'", lang));' +
+      'place.appendChild(s);' +
+      '}' +
+      '};' +
+      '})(window);' +
       '</script>';
 
     static fileTemplateToRegexp(template: string) {
-      if (!template) return template;
-      return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*$';
+      if (!template) return null;
+      var negative = false;
+      if (template[0] == '!') {
+        template = template.substr(1);
+        negative = true;
+      }
+
+      return <IFileTemplateRegexp>{isNegative: negative, regexp: new RegExp('^(?:[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]*').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*)$')};
+    }
+
+    static testFileRegexp(regexps: IFileTemplateRegexp[], str: string) {
+      if (!regexps || !regexps.length)
+        return false;
+
+      return _.find(regexps, (rg: IFileTemplateRegexp) => {
+          return !rg.isNegative && rg.regexp.test(str);
+        })
+        && !_.find(regexps, (rg: IFileTemplateRegexp) => {
+          return rg.isNegative && rg.regexp.test(str);
+        });
     }
 
     constructor(private grunt: IGrunt, private task: grunt.task.IMultiTask<any>) {
@@ -129,12 +152,18 @@ export module NSLoaderTask {
 
       while (cssLoader = regexp.exec(content)) {
         var options = cssLoader[2],
-          param1 = options.split(',')[0].replace(/(?:^\s*'|'\s*$)/g, '');
+          params = options.split(/\s*,\s*/g),
+          templates = [];
+
+        templates = _.map(params, (str: string) => {
+          return str.replace(/(?:^\s*\[|\]\s*$)/g, '')
+            .replace(/(?:^\s*['"]|['"]\s*$)/g, '');
+        });
 
         css_items.push({
           str: cssLoader[1],
           options: options,
-          regexp: new RegExp(Task.fileTemplateToRegexp(param1)),
+          regexp: _.map(templates, Task.fileTemplateToRegexp),
           links: []
         });
       }
@@ -143,7 +172,7 @@ export module NSLoaderTask {
         var cssLink;
         regexp_link.lastIndex = 0;
         while (cssLink = regexp_link.exec(content)) {
-          if (item.regexp.test(cssLink[2])) {
+          if (Task.testFileRegexp(item.regexp, cssLink[2])) {
             item.links.push({
               str: cssLink[1],
               link: cssLink[2]
@@ -170,9 +199,9 @@ export module NSLoaderTask {
         code = code_template(
           {
             csslinks: JSON.stringify(Task.addPlaceholders(cssLinks, this.options,
-                                      this.options.langPlaceholder, this.options.nsPlaceholder)),
+              this.options.langPlaceholder, this.options.nsPlaceholder)),
             jslinks: JSON.stringify(Task.addPlaceholders(jsLinks, this.options,
-                                      this.options.langPlaceholder, this.options.nsPlaceholder))
+              this.options.langPlaceholder, this.options.nsPlaceholder))
           }
         ),
 
@@ -189,8 +218,8 @@ export module NSLoaderTask {
     }
 
     static addPlaceholders(scripts: string[], options: ITaskOptions,
-                         langPlaceholder: string = Task.loaderTemplateLangPlaceholder,
-                         nsPlaceholder: string = Task.loaderTemplateNSplaceholder) {
+                           langPlaceholder: string = Task.loaderTemplateLangPlaceholder,
+                           nsPlaceholder: string = Task.loaderTemplateNSplaceholder) {
 
       return _.map(scripts, (link: string) => {
         return static_i18nextTask.TranslateTask.Task.constructPath(link, options, langPlaceholder, nsPlaceholder).replace(/\\/g, '/');

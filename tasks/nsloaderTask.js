@@ -19,8 +19,23 @@ var NSLoaderTask;
         }
         Task.fileTemplateToRegexp = function (template) {
             if (!template)
-                return template;
-            return '^[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]+').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*$';
+                return null;
+            var negative = false;
+            if (template[0] == '!') {
+                template = template.substr(1);
+                negative = true;
+            }
+            return { isNegative: negative, regexp: new RegExp('^(?:[\\s\\t]*' + template.replace(/\./g, '\\.').replace(/\*\*\//g, '(?:[^\/]+\/)*').replace(/(?:^|([^\)]))\*/g, '$1[^\/]*').replace(/\//g, '\\/') + '(?:[\\?#].*)?[\\s\\t]*)$') };
+        };
+        Task.testFileRegexp = function (regexps, str) {
+            if (!regexps || !regexps.length)
+                return false;
+            return _.find(regexps, function (rg) {
+                return !rg.isNegative && rg.regexp.test(str);
+            })
+                && !_.find(regexps, function (rg) {
+                    return rg.isNegative && rg.regexp.test(str);
+                });
         };
         Task.prototype.start = function (options) {
             this.options = _.extend({}, options);
@@ -79,11 +94,15 @@ var NSLoaderTask;
             var cssLoader, css_items = [];
             regexp.lastIndex = 0;
             while (cssLoader = regexp.exec(content)) {
-                var options = cssLoader[2], param1 = options.split(',')[0].replace(/(?:^\s*'|'\s*$)/g, '');
+                var options = cssLoader[2], params = options.split(/\s*,\s*/g), templates = [];
+                templates = _.map(params, function (str) {
+                    return str.replace(/(?:^\s*\[|\]\s*$)/g, '')
+                        .replace(/(?:^\s*['"]|['"]\s*$)/g, '');
+                });
                 css_items.push({
                     str: cssLoader[1],
                     options: options,
-                    regexp: new RegExp(Task.fileTemplateToRegexp(param1)),
+                    regexp: _.map(templates, Task.fileTemplateToRegexp),
                     links: []
                 });
             }
@@ -91,7 +110,7 @@ var NSLoaderTask;
                 var cssLink;
                 regexp_link.lastIndex = 0;
                 while (cssLink = regexp_link.exec(content)) {
-                    if (item.regexp.test(cssLink[2])) {
+                    if (Task.testFileRegexp(item.regexp, cssLink[2])) {
                         item.links.push({
                             str: cssLink[1],
                             link: cssLink[2]

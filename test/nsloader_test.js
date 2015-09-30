@@ -33,7 +33,8 @@ exports.static_i18next = {
     test.equal(grunt.file.exists(file), true, file + ' should be created');
 
     test.equal(grunt.file.read(file).indexOf('nsloader = function') > -1, true, file + ' should contain nsloader JS script');
-    test.equal(grunt.file.read(file).indexOf('["css/views/<-lang->/<-ns->/index.css","css/views/<-lang->/<-ns->/settings.css","css/widgets/<-lang->/<-ns->/user.css","css/widgets/<-lang->/<-ns->/panel.css?param=1","css/widgets/<-lang->/<-ns->/board.css#hash"]') > -1, true, file + ' should contain css assertions');
+    test.equal(grunt.file.read(file).indexOf('["css/<-lang->/<-ns->/main.css","css/<-lang->/<-ns->/menu.css","css/views/<-lang->/<-ns->/index.css","css/<-lang->/<-ns->/footer.css","css/views/<-lang->/<-ns->/settings.css"]') > -1, true, file + ' should contain css assertions');
+    test.equal(grunt.file.read(file).indexOf('href="css/widgets/user.css"') > -1, true, file + ' should contain css assertions');
     test.equal(grunt.file.read(file).indexOf('["js/widgets/<-lang->/<-ns->/user.js","js/widgets/<-lang->/<-ns->/panel.js?param=1","js/widgets/<-lang->/<-ns->/board.js#hash"]') > -1, true, file + ' should contain js assertions');
 
     test.done();

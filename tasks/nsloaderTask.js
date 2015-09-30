@@ -8,6 +8,7 @@
  */
 'use strict';
 var _ = require('lodash');
+var path = require('path');
 var Q = require('q');
 var static_i18nextTask = require('./static_i18nextTask');
 var NSLoaderTask;
@@ -16,6 +17,7 @@ var NSLoaderTask;
         function Task(grunt, task) {
             this.grunt = grunt;
             this.task = task;
+            this.filesMap = [];
         }
         Task.fileTemplateToRegexp = function (template) {
             if (!template)
@@ -80,6 +82,16 @@ var NSLoaderTask;
             catch (e) {
                 this.grunt.log.warn('Error while processing Files: ' + e.message);
             }
+            try {
+                var config = this.grunt.config('static_i18next');
+                _.extend(config, { generated: {
+                        files: this.filesMap
+                    } });
+                this.grunt.config('static_i18next', config);
+            }
+            catch (e) {
+                this.grunt.log.warn('Error while generating Grunt Config: ' + e.message);
+            }
         };
         Task.prototype.processFiles = function () {
             this.task.files.forEach(this.processFile.bind(this));
@@ -98,7 +110,7 @@ var NSLoaderTask;
             }).map(function (filepath) {
                 var data = _this.grunt.file.read(filepath);
                 try {
-                    data = _this.generateLoader(file, data);
+                    data = _this.generateLoader(filepath, data);
                 }
                 catch (e) {
                     _this.grunt.log.warn('Error while processing file ' + filepath + ' : ' + e.message);
@@ -188,7 +200,8 @@ var NSLoaderTask;
             });
             return blocks;
         };
-        Task.prototype.generateLoader = function (file, content) {
+        Task.prototype.generateLoader = function (filepath, content) {
+            var _this = this;
             var css_items = this.getLinks(content, Task.regexps.css, new RegExp(Task.regexps.css_link, 'gim')), js_items = this.getLinks(content, Task.regexps.js, new RegExp(Task.regexps.js_link, 'gim')), cssLinks = _.uniq(_.map(_.flatten(_.map(css_items, 'links')), 'link')), jsLinks = _.uniq(_.map(_.flatten(_.map(js_items, 'links')), 'link')), code_template = _.template(Task.loaderTemplate), code = code_template({
                 csslinks: JSON.stringify(Task.addPlaceholders(cssLinks, this.options, this.options.langPlaceholder, this.options.nsPlaceholder)),
                 jslinks: JSON.stringify(Task.addPlaceholders(jsLinks, this.options, this.options.langPlaceholder, this.options.nsPlaceholder))
@@ -239,6 +252,11 @@ var NSLoaderTask;
             });
             if (cssLinks.length || jsLinks.length)
                 text.splice(1, 0, code);
+            var cwd = path.dirname(filepath);
+            this.filesMap = this.filesMap.concat(_.map([].concat(cssLinks).concat(jsLinks), function (link) {
+                link = path.normalize(link.replace(/(?:[\?#].*$)/gi, ''));
+                return { dest: path.join(_this.options.dest || 'dist', link), src: [path.join(cwd || '', link)] };
+            }));
             return text.join('');
         };
         Task.addPlaceholders = function (scripts, options, langPlaceholder, nsPlaceholder) {

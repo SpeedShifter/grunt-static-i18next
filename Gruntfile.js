@@ -160,6 +160,7 @@ module.exports = function (grunt) {
 
     nsloader: {
       options: {
+        dest: '.tmp'
       },
       test: {
         files: [{
@@ -237,6 +238,8 @@ module.exports = function (grunt) {
   // Whenever the "test" task is run, first clean the ".tmp" dir, then run this
   // plugin's task(s), then test the result.
   grunt.registerTask('test', ['clean', 'static_i18next', 'nsloader:test', 'nodeunit']);
+
+  grunt.registerTask('test:nsloader', ['clean', 'nsloader:test', 'static_i18next:generated']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);

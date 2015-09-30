@@ -1,0 +1,4 @@
+.main {
+  content: "<%= t('app.name') %>";
+  background-image: url('img/<%= t('app.area') %>');
+}

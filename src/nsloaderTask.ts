@@ -17,6 +17,7 @@ import static_i18nextTask = require('./static_i18nextTask');
 export module NSLoaderTask {
 
   export interface ITaskOptions extends static_i18nextTask.TranslateTask.IPathConstructOptions {
+    dest?: string;
     langPlaceholder?: string;
     nsPlaceholder?: string;
   }
@@ -42,6 +43,7 @@ export module NSLoaderTask {
 
   export class Task {
     private options: ITaskOptions;
+    public filesMap: {dest: string; src: string[];}[] = [];
 
     static regexps = {
       css: ['(<!--[\\s\\t]*nsloader[\\s\\t]*:[\\s\\t]*css[\\s\\t]*(.+)[\\s\\t]*-->)', '(<!--[\\s\\t]*endnsloader[\\s\\t]*-->)'],
@@ -145,9 +147,19 @@ export module NSLoaderTask {
       }
 
       try {
-        this.processFiles()
+        this.processFiles();
       } catch(e) {
         this.grunt.log.warn('Error while processing Files: ' + e.message);
+      }
+
+      try {
+        var config = this.grunt.config('static_i18next');
+        _.extend(config, {generated: {
+          files: this.filesMap
+        }});
+        this.grunt.config('static_i18next', config);
+      } catch(e) {
+        this.grunt.log.warn('Error while generating Grunt Config: ' + e.message);
       }
     }
 
@@ -168,10 +180,11 @@ export module NSLoaderTask {
         var data = this.grunt.file.read(filepath);
 
         try {
-          data = this.generateLoader(file, data);
+          data = this.generateLoader(filepath, data);
         } catch (e) {
           this.grunt.log.warn('Error while processing file ' + filepath + ' : ' + e.message);
         }
+
         return data;
       }).join('\n');
 
@@ -279,7 +292,7 @@ export module NSLoaderTask {
       return blocks;
     }
 
-    private generateLoader(file: grunt.file.IFilesConfig, content: string) {
+    private generateLoader(filepath: string, content: string) {
       var css_items = this.getLinks(content, Task.regexps.css, new RegExp(Task.regexps.css_link, 'gim')),
         js_items = this.getLinks(content, Task.regexps.js, new RegExp(Task.regexps.js_link, 'gim')),
 
@@ -349,6 +362,12 @@ export module NSLoaderTask {
 
       if (cssLinks.length || jsLinks.length)
         text.splice(1,0,code);
+
+      var cwd = path.dirname(filepath);
+      this.filesMap = this.filesMap.concat(_.map([].concat(cssLinks).concat(jsLinks), (link:string) => {
+        link = path.normalize(link.replace(/(?:[\?#].*$)/gi, ''));
+        return {dest: path.join(this.options.dest || 'dist', link), src: [path.join(cwd || '', link)]};
+      }));
 
       return text.join('');
     }

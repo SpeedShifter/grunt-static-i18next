@@ -238,15 +238,12 @@ var NSLoaderTask;
                     collapsed.push(a);
                 }
             });
-            var splits = _.map(collapsed, function (a, index) {
-                if (index == 0)
-                    return [0, a[0]];
-                if (index == collapsed.length - 1)
-                    return [a[1], content.length];
-                return [collapsed[index - 1][1], a[0]];
-            });
-            if (!splits.length)
-                splits = [[0, content.length]];
+            var splits = _.reduce([0].concat(_.flatten(collapsed)).concat([content.length]), function (memo, a, index, list) {
+                if (index % 2) {
+                    memo.push([list[index - 1], a]);
+                }
+                return memo;
+            }, []);
             var text = _.map(splits, function (a) {
                 return content.substring(a[0], a[1]);
             });

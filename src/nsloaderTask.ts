@@ -346,15 +346,12 @@ export module NSLoaderTask {
         }
       });
 
-      var splits = _.map(collapsed, (a: number[], index: number) => {
-        if (index == 0)
-          return [0, a[0]];
-        if (index == collapsed.length -1)
-          return [a[1], content.length];
-        return [collapsed[index-1][1], a[0]];
-      });
-      if (!splits.length) // no splits here, means we dont have nsloader task
-        splits = [[0, content.length]];
+      var splits = _.reduce([0].concat(_.flatten(collapsed)).concat([content.length]), (memo: number[][], a: number, index: number, list: number[]) => {
+        if (index % 2) {
+          memo.push([list[index-1], a]);
+        }
+        return memo;
+      }, []);
 
       var text = _.map(splits, (a: number[]) => {
         return content.substring(a[0], a[1]);
